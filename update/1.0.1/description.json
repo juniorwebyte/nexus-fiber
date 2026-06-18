@@ -1,0 +1,6 @@
+{
+    "version": "1.0.1",
+    "description": "Atualização de segurança e performance. Melhora o tempo de resposta dos núcleos centrais.",
+    "release_date": "2026-04-12",
+    "required_php": "7.4"
+}

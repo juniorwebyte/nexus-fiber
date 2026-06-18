@@ -1,0 +1,11 @@
+DirectoryIndex index.php index.html
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # Redirecionar assets estáticos para a pasta public do backend
+    RewriteRule ^backend/(css|js|img|icon\.png|manifest\.json|sw\.js)(/.*)?$ backend/public/$1$2 [L]
+    
+    # Redirecionar todas as outras requisições para o Router do backend
+    RewriteRule ^backend/(.*)$ backend/public/index.php [QSA,L]
+</IfModule>

@@ -1,0 +1,102 @@
+:root {
+    --primary: #660099; 
+    --primary-hover: #8a00cc;
+    --bg: #e9ecef;
+    --box-bg: #ffffff;
+    --text: #333;
+    --danger: #ff4757;
+    --success: #2ed573;
+    --warning: #ffa502;
+    --cable: #1e272e;
+    --cable-forced: #9b59b6;
+    
+    /* Cores das CTOs */
+    --color-verde: #2ed573;
+    --color-amarela: #ffa502;
+    --color-branca: #ffffff;
+    --color-azul: #1e90ff;
+    --color-vermelha: #ff4757;
+    --color-lilas: #a55eea;
+}
+
+* { box-sizing: border-box; }
+
+body { 
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+    background: var(--bg); 
+    color: var(--text);
+    margin: 0; 
+    padding: 0;
+}
+
+/* Header PWA / Mobile */
+.app-header {
+    background: var(--box-bg);
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.brand-logo {
+    height: 40px;
+}
+
+.app-container {
+    padding: 15px;
+    padding-bottom: 80px; /* Para a barra mobile inferior */
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+h1, h2 { color: var(--primary); margin-top: 0; }
+
+.panel { 
+    background: var(--box-bg); 
+    padding: 20px; 
+    border-radius: 12px; 
+    box-shadow: 0 8px 16px rgba(0,0,0,0.05); 
+    margin-bottom: 20px; 
+}
+
+.btn {
+    background: var(--primary); color: white; border: none; 
+    padding: 12px 20px; border-radius: 8px; cursor: pointer; 
+    font-size: 1em; font-weight: bold; transition: background 0.3s;
+    width: 100%; /* Mobile friendly default */
+    text-align: center;
+    display: inline-block;
+}
+.btn:hover { background: var(--primary-hover); }
+
+/* Bottom Nav para Mobile */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 0;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+    z-index: 100;
+}
+
+.nav-item {
+    color: #666;
+    text-decoration: none;
+    font-size: 0.8em;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+.nav-item.active {
+    color: var(--primary);
+    font-weight: bold;
+}

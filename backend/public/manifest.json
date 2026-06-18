@@ -1,0 +1,17 @@
+{
+  "name": "Drop Nexus Fiber",
+  "short_name": "Nexus Fiber",
+  "description": "Plataforma Operacional de Gestão e Engenharia de Telecomunicações",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#030406",
+  "theme_color": "#030406",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png"
+    }
+  ]
+}

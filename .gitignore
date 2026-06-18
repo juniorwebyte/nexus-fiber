@@ -1,0 +1,150 @@
+# ==========================================
+# ENVIRONMENT VARIABLES
+# ==========================================
+.env
+.env.*
+!.env.example
+
+# ==========================================
+# DEPENDENCIES
+# ==========================================
+node_modules/
+vendor/
+
+# ==========================================
+# BUILD FILES
+# ==========================================
+dist/
+build/
+public/build/
+.next/
+.nuxt/
+out/
+coverage/
+
+# ==========================================
+# CACHE
+# ==========================================
+.cache/
+.parcel-cache/
+.vite/
+.tmp/
+temp/
+tmp/
+
+# ==========================================
+# LOGS
+# ==========================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ==========================================
+# DATABASES
+# ==========================================
+*.sqlite
+*.sqlite3
+*.db
+
+# ==========================================
+# UPLOADS
+# ==========================================
+uploads/*
+storage/uploads/*
+public/uploads/*
+public/storage/*
+!public/storage/.gitkeep
+
+# ==========================================
+# SESSION FILES
+# ==========================================
+sessions/
+*.sess
+
+# ==========================================
+# BACKUPS
+# ==========================================
+backup/
+backups/
+*.bak
+*.backup
+*.old
+*.zip
+
+# ==========================================
+# DOCKER
+# ==========================================
+docker-data/
+mysql-data/
+postgres-data/
+redis-data/
+
+# ==========================================
+# PHP
+# ==========================================
+composer.phar
+.phpunit.result.cache
+
+# Laravel
+storage/*.key
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+bootstrap/cache/*
+
+# ==========================================
+# IDEs
+# ==========================================
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# ==========================================
+# OPERATING SYSTEM
+# ==========================================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ==========================================
+# TESTS
+# ==========================================
+coverage/
+.nyc_output/
+
+# ==========================================
+# CERTIFICATES & KEYS
+# ==========================================
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# ==========================================
+# GENERATED FILES
+# ==========================================
+*.pid
+*.seed
+*.pid.lock
+
+# ==========================================
+# SECURITY
+# ==========================================
+secrets/
+credentials/
+config/local.php
+config/database.php
+config/database.local.php
+
+# ==========================================
+# RUNTIME FILES
+# ==========================================
+storage/logs/*
+storage/framework/*
+storage/debugbar/*

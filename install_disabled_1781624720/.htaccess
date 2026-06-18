@@ -1,0 +1,11 @@
+<IfModule mod_rewrite.c>
+RewriteEngine On
+
+# Se a instalação já foi concluída, bloqueia o /install por segurança.
+# Mantém liberado apenas o diagnóstico pós-instalação.
+# Caminho relativo (subpasta compatível): ../storage/installed.lock
+RewriteCond ../storage/installed\.lock -f
+RewriteCond %{REQUEST_URI} !/install/post-check\.php$ [NC]
+RewriteRule ^ - [F,L]
+</IfModule>
+

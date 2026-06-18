@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Engenharia FTTH - Normas Oficiais</title>
+    <style>
+        :root {
+            --primary: #660099; 
+            --primary-hover: #8a00cc;
+            --bg: #e9ecef;
+            --box-bg: #ffffff;
+            --text: #333;
+            --danger: #ff4757;
+            --success: #2ed573;
+            --warning: #ffa502;
+            --cable: #1e272e;
+            --cable-forced: #9b59b6;
+            
+            /* Cores das CTOs */
+            --color-verde: #2ed573;
+            --color-amarela: #ffa502;
+            --color-branca: #ffffff;
+            --color-azul: #1e90ff;
+            --color-vermelha: #ff4757;
+            --color-lilas: #a55eea;
+        }
+        
+        * { box-sizing: border-box; }
+        
+        body { 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background: var(--bg); 
+            color: var(--text);
+            margin: 0; 
+            padding: 15px; 
+        }
+
+        h1, h2 { color: var(--primary); margin-top: 0; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        
+        .panel { 
+            background: var(--box-bg); 
+            padding: 20px; 
+            border-radius: 12px; 
+            box-shadow: 0 8px 16px rgba(0,0,0,0.05); 
+            margin-bottom: 20px; 
+        }
+
+        .controls { display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; }
+        .form-group { flex: 1; min-width: 180px; }
+        label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 0.85em; color: #555; }
+        input, select { 
+            width: 100%; padding: 10px; border: 1px solid #ccc; 
+            border-radius: 6px; font-size: 1em; background: #fdfdfd;
+        }
+        
+        .btn {
+            background: var(--primary); color: white; border: none; 
+            padding: 10px 20px; border-radius: 6px; cursor: pointer; 
+            font-size: 1em; font-weight: bold; transition: background 0.3s;
+        }
+        .btn:hover { background: var(--primary-hover); }
+        .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
+        .btn-outline:hover { background: var(--primary); color: white; }
+
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;}
+
+        /* Área do Diagrama com Barra Contínua */
+        .network-area { overflow-x: auto; padding: 40px 20px; background: #fff; border-radius: 12px; min-height: 450px; }
+        
+        /* Cabo contínuo */
+        .branch { 
+            display: flex; flex-direction: row; align-items: center; 
+            position: relative; padding: 20px 0; margin-bottom: 40px;
+        }
+        .branch::before {
+            content: '';
+            position: absolute;
+            top: 50%; left: 0; right: 0; height: 6px;
+            background: var(--cable);
+            transform: translateY(-50%);
+            z-index: 1;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            border-top: 1px solid #555; border-bottom: 1px solid #000;
+        }
+        
+        .node-container { display: flex; align-items: center; z-index: 2; }
+
+        /* Espaçamento / Cabo entre caixas */
+        .cable-span { position: relative; width: 70px; height: 40px; display: flex; justify-content: center; align-items: center; }
+        .cable-span.forced-next::after {
+            content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 6px;
+            background: var(--cable-forced); transform: translateY(-50%); z-index: 1; border-top: 1px dashed #fff;
+        }
+
+        .cable-label { 
+            position: absolute; top: -20px; background: #2f3542; color: #fff; 
+            padding: 2px 6px; border-radius: 4px; font-size: 0.72em; font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2); white-space: nowrap; cursor: pointer; z-index: 3;
+        }
+
+        /* FOSC / CEO */
+        .fosc {
+            background: linear-gradient(145deg, #2f3640, #192a56); border-radius: 8px;
+            width: 140px; padding: 12px; color: white; text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: 2px solid #111; z-index: 5;
+        }
+        .fosc-title { font-weight: bold; font-size: 0.85em; margin-bottom: 5px; color: #a4b0be; }
+        .fosc-val { font-size: 0.85em; background: rgba(0,0,0,0.5); padding: 3px; border-radius: 4px; margin: 2px 0; }
+
+        /* Caixa CTO Realista */
+        .cto-box {
+            background: linear-gradient(145deg, #4b4b4b, #2d2d2d); border: 1px solid #111; border-radius: 6px;
+            width: 130px; box-shadow: 0 5px 12px rgba(0,0,0,0.3); color: #f1f1f1; cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s; display: flex; flex-direction: column; z-index: 5;
+        }
+        .cto-box:hover { transform: scale(1.04); box-shadow: 0 8px 18px rgba(0,0,0,0.4); }
+        .cto-box.forced-border { border: 2px dashed #a55eea !important; }
+        
+        /* Faixas coloridas Vivo */
+        .stripe-verde { height: 8px; background: var(--color-verde); border-radius: 5px 5px 0 0; }
+        .stripe-amarela { height: 8px; background: var(--color-amarela); border-radius: 5px 5px 0 0; }
+        .stripe-branca { height: 8px; background: var(--color-branca); border-radius: 5px 5px 0 0; }
+        .stripe-azul { height: 8px; background: var(--color-azul); border-radius: 5px 5px 0 0; }
+        .stripe-vermelha { height: 8px; background: var(--color-vermelha); border-radius: 5px 5px 0 0; }
+        .stripe-lilas { height: 8px; background: var(--color-lilas); border-radius: 5px 5px 0 0; }
+        
+        .cto-body { padding: 8px; text-align: center; }
+        .cto-label { font-weight: bold; font-size: 0.95em; border-bottom: 1px solid #555; padding-bottom: 4px; margin-bottom: 4px; }
+        .cto-signal { font-size: 0.78em; margin: 2px 0; color: #ccc; }
+        
+        .client-signal { font-size: 1.05em; font-weight: bold; margin-top: 6px; background: rgba(0,0,0,0.4); padding: 3px; border-radius: 4px; border: 1px solid #555; position: relative;}
+        .sig-good { color: #2ed573; border-color: #2ed573; }
+        .sig-warn { color: #ffa502; border-color: #ffa502; }
+        .sig-bad { color: #ff4757; border-color: #ff4757; background: rgba(255,71,87,0.1); }
+        
+        /* Badge para OTDR alert */
+        .otdr-alert {
+            position: absolute; top: -10px; right: -10px; background: var(--danger); color: white;
+            font-size: 0.6em; padding: 2px 4px; border-radius: 4px; font-weight: bold; text-transform: uppercase;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3); animation: pulse 1s infinite;
+        }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+
+        .cto-ports { display: flex; justify-content: space-around; background: #111; height: 10px; border-radius: 0 0 5px 5px; padding: 0 4px; align-items: center; }
+        .port { width: 6px; height: 5px; background: #000; border: 1px solid #444; }
+
+        /* Modal */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center;
+            backdrop-filter: blur(3px);
+        }
+        .modal {
+            background: white; width: 95%; max-width: 420px; border-radius: 12px; padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3); animation: slideIn 0.2s ease-out;
+        }
+        @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px; }
+        .modal-header h3 { margin: 0; color: var(--primary); }
+        .close-btn { background: none; border: none; font-size: 1.5em; cursor: pointer; color: #888; }
+        .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee; }
+        .input-overwrite-group { background: #f8f9fa; border: 1px dashed var(--primary); padding: 10px; border-radius: 6px; margin-bottom: 15px; }
+
+        /* Responsividade Adaptada */
+        @media (max-width: 992px) {
+            .branch { flex-wrap: wrap; justify-content: center; gap: 30px 10px; padding: 40px 0; }
+            .branch::before { display: none; }
+            .cable-span { width: 100% !important; height: 2px; margin: 10px 0; background: var(--cable); }
+            .cable-span.forced-next::after { height: 2px; }
+            .cable-label { top: -25px; left: 50%; transform: translateX(-50%); }
+            .node-container { flex-direction: column; width: 45%; min-width: 140px; align-items: center; }
+        }
+
+        /* Modo Filtro Ativo */
+        .filter-mode .node-container.good-signal { opacity: 0.15; filter: grayscale(100%); }
+        .identificacao { font-family: monospace; font-size: 1.1em; background: #e8e8e8; padding: 10px 15px; border-radius: 8px; border-left: 4px solid var(--primary); display: inline-block; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="top-bar">
+        <div>
+            <h1>Simulador FTTH de Engenharia</h1>
+            <div class="identificacao" id="display-nomenclatura">JMFH;02-f#01</div>
+        </div>
+        <div>
+            <button class="btn btn-outline" id="btn-filtro" onclick="toggleFiltro()">
+                🔍 Destacar Portas Críticas / Falhas
+            </button>
+        </div>
+    </div>
+    
+    <div class="panel">
+        <h3 style="margin-top:0; color:#555; font-size:1em; border-bottom:1px solid #eee; padding-bottom:10px;">Parâmetros Técnicos Normativos</h3>
+        <div class="controls">
+            <div class="form-group">
+                <label>Nomenclatura (Padrão)</label>
+                <input type="text" id="in-nomenclatura" value="JMFH;02-f#01" onchange="atualizarNomenclatura()">
+            </div>
+            <div class="form-group">
+                <label>Topologia Oficial</label>
+                <select id="in-tipo-rede" onchange="gerarRede(true)">
+                    <option value="convencional">Barramento Convencional (8 CTOs Seguidas)</option>
+                    <option value="dupla">Barramento Lateral Dupla (Hub 1x2 -> 2 Ramais)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Potência Inicial OLT/FOSK (dBm)</label>
+                <input type="number" id="in-sinal" value="3.0" step="0.1" onchange="gerarRede(false)">
+            </div>
+            
+            <div class="form-group" style="border-left: 2px solid var(--primary); padding-left: 15px;">
+                <label title="Norma máxima (ITU-T G.652) para 1490nm é 0.25dB/km. Projetos adotam 0.22dB/km.">Atenuação Fibra (dB/km) ℹ️</label>
+                <input type="number" id="in-atenuacao-fibra" value="0.25" step="0.01" onchange="gerarRede(false)">
+            </div>
+            <div class="form-group">
+                <label title="Perda mecânica padrão ABNT (Emenda + Conector SC/APC) nas passagens CTO">Perda p/ Conexões por Caixa (dB) ℹ️</label>
+                <input type="number" id="in-atenuacao-conector" value="0.30" step="0.05" onchange="gerarRede(false)">
+            </div>
+            <div class="form-group">
+                <button class="btn" style="width: 100%" onclick="gerarRede(true)">Resetar Parâmetros</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="network-area" id="network-canvas">
+        <!-- Inserido dinamicamente -->
+    </div>
+</div>
+
+<!-- Modal de Configuração -->
+<div class="modal-overlay" id="cto-modal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 id="modal-title">Configurar Caixa</h3>
+            <button class="close-btn" onclick="fecharModal()">&times;</button>
+        </div>
+        <input type="hidden" id="modal-node-id">
+        
+        <div class="input-overwrite-group">
+            <label style="color: var(--primary); font-weight: bold;">⚠️ Forçar Leitura Física (IN) nesta CTO?</label>
+            <div style="display:flex; gap:10px; align-items:center; margin-top:5px;">
+                <input type="checkbox" id="modal-force-in-check" style="width:auto;" onchange="toggleForceInFields()"> 
+                <span style="font-size:0.85em; color:#666;">Ignorar cálculo anterior e fixar valor medido</span>
+            </div>
+            <div id="modal-force-in-container" style="margin-top:10px; display:none;">
+                <label>Sinal Medido no Físico (dBm):</label>
+                <input type="number" id="modal-forced-in-value" step="0.1" value="-4.0">
+            </div>
+        </div>
+        
+        <div class="form-group" style="margin-bottom: 15px;" id="modal-dist-container">
+            <label>Metragem do lance de cabo anterior (m)</label>
+            <input type="number" id="modal-dist" step="1" min="0">
+        </div>
+        
+        <div class="form-group">
+            <label>Splitter Desbalanceado</label>
+            <select id="modal-splitter">
+                <option value="10/90">10/90 (Perda TAP: 10.5dB | Pass: 0.6dB)</option>
+                <option value="15/85">15/85 (Perda TAP: 8.5dB | Pass: 0.9dB)</option>
+                <option value="20/80">20/80 (Perda TAP: 7.3dB | Pass: 1.2dB)</option>
+                <option value="25/75">25/75 (Perda TAP: 6.3dB | Pass: 1.5dB)</option>
+                <option value="30/70">30/70 (Perda TAP: 5.6dB | Pass: 1.9dB)</option>
+                <option value="35/65">35/65 (Perda TAP: 5.0dB | Pass: 2.2dB)</option>
+                <option value="40/60">40/60 (Perda TAP: 4.4dB | Pass: 2.6dB)</option>
+                <option value="50/50">50/50 (Perda TAP: 3.4dB | Pass: 3.4dB)</option>
+                <option value="terminal">Terminal (Fim de linha / Sem Saída)</option>
+            </select>
+        </div>
+        
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="fecharModal()">Cancelar</button>
+            <button class="btn" onclick="salvarModal()">Salvar Parâmetros</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Parâmetros extraídos da norma Vivo
+    const PERDA_1X8 = 10.5;
+    const PERDA_HUB_1X2 = 3.7;
+    const SINAL_LIMITE = -25.0; // Padrão máximo aceitável
+    const SINAL_FALHA = -26.0;  // Pior que -26 exige OTDR
+
+    const splitters = {
+        "10/90": { drop: 10.5, pass: 0.6 },
+        "15/85": { drop: 8.5, pass: 0.9 },
+        "20/80": { drop: 7.3, pass: 1.2 },
+        "25/75": { drop: 6.3, pass: 1.5 },
+        "30/70": { drop: 5.6, pass: 1.9 },
+        "35/65": { drop: 5.0, pass: 2.2 },
+        "40/60": { drop: 4.4, pass: 2.6 },
+        "50/50": { drop: 3.4, pass: 3.4 },
+        "terminal": { drop: 0, pass: 999 } 
+    };
+
+    let redeState = {};
+    let isFilterActive = false;
+
+    function atualizarNomenclatura() {
+        document.getElementById('display-nomenclatura').innerText = document.getElementById('in-nomenclatura').value;
+    }
+
+    function inicializarEstadoRede() {
+        const tipo = document.getElementById('in-tipo-rede').value;
+        redeState = { tipo: tipo, nodes: {} };
+        
+        if(tipo === 'convencional') {
+            const configConvencional = [
+                { label: "57-64", colorClass: "stripe-verde", splitter: "10/90" },
+                { label: "49-56", colorClass: "stripe-verde", splitter: "10/90" },
+                { label: "41-48", colorClass: "stripe-verde", splitter: "15/85" },
+                { label: "33-40", colorClass: "stripe-amarela", splitter: "20/80" },
+                { label: "25-32", colorClass: "stripe-branca", splitter: "30/70" },
+                { label: "17-24", colorClass: "stripe-azul", splitter: "40/60" },
+                { label: "09-16", colorClass: "stripe-vermelha", splitter: "50/50" },
+                { label: "01-08", colorClass: "stripe-lilas", splitter: "terminal" }
+            ];
+            configConvencional.forEach((cfg, index) => {
+                redeState.nodes[`cto_${index}`] = {
+                    label: cfg.label, colorClass: cfg.colorClass, distancia: 100, splitter: cfg.splitter, forcedIn: null
+                };
+            });
+        } else {
+            redeState.hubDistancia = 500;
+            redeState.forcedHubIn = null;
+            const branchA = ["57-64", "49-56", "41-48", "33-40"];
+            const branchB = ["25-32", "17-24", "09-16", "01-08"];
+            
+            branchA.forEach((label, index) => {
+                let color = index < 3 ? "stripe-azul" : "stripe-lilas";
+                let s = index === 3 ? "terminal" : (index === 0 ? "15/85" : (index === 1 ? "25/75" : "40/60"));
+                redeState.nodes[`a_${index}`] = { label: label, colorClass: color, distancia: 100, splitter: s, forcedIn: null };
+            });
+            branchB.forEach((label, index) => {
+                let color = index < 3 ? "stripe-azul" : "stripe-lilas";
+                let s = index === 3 ? "terminal" : (index === 0 ? "15/85" : (index === 1 ? "25/75" : "40/60"));
+                redeState.nodes[`b_${index}`] = { label: label, colorClass: color, distancia: 100, splitter: s, forcedIn: null };
+            });
+        }
+    }
+
+    function gerarRede(forcarReset = false) {
+        if(forcarReset) inicializarEstadoRede();
+        atualizarNomenclatura();
+        calcularSinais();
+        renderizarCanvas();
+    }
+
+    function calcularSinais() {
+        const sinalPrimaria = parseFloat(document.getElementById('in-sinal').value) || 0;
+        const atenFibra = parseFloat(document.getElementById('in-atenuacao-fibra').value) || 0.25;
+        const atenConexao = parseFloat(document.getElementById('in-atenuacao-conector').value) || 0;
+        
+        if(redeState.tipo === 'convencional') {
+            let sinalAtual = sinalPrimaria;
+            for(let i=0; i<8; i++) {
+                let node = redeState.nodes[`cto_${i}`];
+                if (node.forcedIn !== null) {
+                    node.sinalIn = node.forcedIn;
+                } else {
+                    node.sinalIn = sinalAtual - ((node.distancia / 1000) * atenFibra);
+                }
+                
+                let sp = splitters[node.splitter];
+                // Cliente absorve a perda do TAP + Splitter interno 1x8
+                node.sinalCliente = node.sinalIn - sp.drop - PERDA_1X8;
+                // O sinal OUT absorve a perda mecânica da CTO + perda passante do splitter
+                node.sinalOut = node.sinalIn - sp.pass - atenConexao;
+                sinalAtual = node.sinalOut;
+            }
+        } else {
+            // Cálculo Hub
+            redeState.hubIn = redeState.forcedHubIn !== null ? redeState.forcedHubIn : (sinalPrimaria - ((redeState.hubDistancia / 1000) * atenFibra));
+            redeState.hubOut = redeState.hubIn - PERDA_HUB_1X2 - atenConexao;
+            
+            let calcBranch = (prefix) => {
+                let sinalAtual = redeState.hubOut;
+                for(let i=0; i<4; i++) {
+                    let node = redeState.nodes[`${prefix}_${i}`];
+                    if (node.forcedIn !== null) {
+                        node.sinalIn = node.forcedIn;
+                    } else {
+                        node.sinalIn = sinalAtual - ((node.distancia / 1000) * atenFibra);
+                    }
+                    let sp = splitters[node.splitter];
+                    node.sinalCliente = node.sinalIn - sp.drop - PERDA_1X8;
+                    node.sinalOut = node.sinalIn - sp.pass - atenConexao;
+                    sinalAtual = node.sinalOut;
+                }
+            };
+            calcBranch('a'); calcBranch('b');
+        }
+    }
+
+    function renderizarCanvas() {
+        const canvas = document.getElementById('network-canvas');
+        canvas.innerHTML = '';
+        
+        if(redeState.tipo === 'convencional') {
+            const branchDiv = document.createElement('div');
+            branchDiv.className = 'branch';
+            
+            branchDiv.innerHTML = `
+                <div class="fosc">
+                    <div class="fosc-title">CEO / FOSK Inicial</div>
+                    <div class="fosc-val">${parseFloat(document.getElementById('in-sinal').value || 0).toFixed(1)} dBm</div>
+                </div>
+            `;
+            
+            for(let i=0; i<8; i++) {
+                branchDiv.appendChild(montarNoGrafico(`cto_${i}`));
+            }
+            canvas.appendChild(branchDiv);
+        } else {
+            const wrapper = document.createElement('div');
+            wrapper.style.display = 'flex';
+            wrapper.style.alignItems = 'center';
+            wrapper.style.gap = '20px';
+            wrapper.style.flexWrap = 'wrap';
+            
+            const isForcedHub = redeState.forcedHubIn !== null;
+            const hubContainer = document.createElement('div');
+            hubContainer.style.display = 'flex';
+            hubContainer.style.alignItems = 'center';
+            hubContainer.innerHTML = `
+                <div class="fosc" style="z-index: 10; cursor:pointer;" onclick="abrirModalHub()">
+                    <div class="fosc-title">FOSK (Hub) ${isForcedHub ? '📌' : ''}</div>
+                    <div class="fosc-val">IN: ${redeState.hubIn.toFixed(1)}</div>
+                    <div class="fosc-val">OUT: ${redeState.hubOut.toFixed(1)}</div>
+                </div>
+                <div class="cable-span" style="width:50px;">
+                    <div class="cable-label" onclick="abrirModalHub()">${isForcedHub ? 'Fixo' : redeState.hubDistancia + 'm'}</div>
+                </div>
+            `;
+            wrapper.appendChild(hubContainer);
+            
+            const branchesDiv = document.createElement('div');
+            branchesDiv.style.display = 'flex';
+            branchesDiv.style.flexDirection = 'column';
+            branchesDiv.style.gap = '10px';
+            
+            const branchA = document.createElement('div'); branchA.className = 'branch';
+            for(let i=0; i<4; i++) branchA.appendChild(montarNoGrafico(`a_${i}`));
+            
+            const branchB = document.createElement('div'); branchB.className = 'branch';
+            for(let i=0; i<4; i++) branchB.appendChild(montarNoGrafico(`b_${i}`));
+            
+            branchesDiv.appendChild(branchA);
+            branchesDiv.appendChild(branchB);
+            wrapper.appendChild(branchesDiv);
+            canvas.appendChild(wrapper);
+        }
+        aplicarFiltroVisual();
+    }
+
+    function montarNoGrafico(id) {
+        const node = redeState.nodes[id];
+        const container = document.createElement('div');
+        container.className = 'node-container';
+        container.id = `wrapper-${id}`;
+        
+        let sigClass = 'sig-good';
+        let badgeOtdr = '';
+        
+        if(node.sinalCliente <= SINAL_FALHA) {
+            sigClass = 'sig-bad';
+            badgeOtdr = '<div class="otdr-alert">Falha OTDR</div>';
+        } else if(node.sinalCliente < SINAL_LIMITE) {
+            sigClass = 'sig-warn';
+        }
+        
+        if(node.sinalCliente >= SINAL_LIMITE) container.classList.add('good-signal');
+        
+        let portsHtml = '';
+        for(let i=0; i<8; i++) portsHtml += '<div class="port"></div>';
+        
+        const isForced = node.forcedIn !== null;
+        
+        container.innerHTML = `
+            <div class="cable-span ${isForced ? 'forced-next' : ''}">
+                <div class="cable-label" onclick="abrirModal('${id}')">
+                    ${isForced ? '📌 Fixo' : node.distancia + 'm'}
+                </div>
+            </div>
+            <div class="cto-box ${isForced ? 'forced-border' : ''}" onclick="abrirModal('${id}')">
+                <div class="${node.colorClass}"></div>
+                <div class="cto-body">
+                    <div class="cto-label">CTO ${node.label}</div>
+                    <div class="cto-signal">IN: ${node.sinalIn.toFixed(1)} ${isForced ? '🛠️' : ''}</div>
+                    <div class="cto-signal">OUT: ${node.sinalOut < -50 ? 'N/A' : node.sinalOut.toFixed(1)}</div>
+                    <div class="client-signal ${sigClass}">${node.sinalCliente.toFixed(1)} ${badgeOtdr}</div>
+                    <div class="cto-signal" style="margin-top:4px; font-size:0.62em; color:#999;">${node.splitter}</div>
+                </div>
+                <div class="cto-ports">${portsHtml}</div>
+            </div>
+        `;
+        return container;
+    }
+
+    function abrirModal(id) {
+        const node = redeState.nodes[id];
+        document.getElementById('modal-title').innerText = `Configurar CTO ${node.label}`;
+        document.getElementById('modal-node-id').value = id;
+        document.getElementById('modal-dist-container').style.display = 'block';
+        document.getElementById('modal-dist').value = node.distancia;
+        document.getElementById('modal-splitter').disabled = false;
+        document.getElementById('modal-splitter').value = node.splitter;
+        
+        if(node.forcedIn !== null) {
+            document.getElementById('modal-force-in-check').checked = true;
+            document.getElementById('modal-forced-in-value').value = node.forcedIn;
+        } else {
+            document.getElementById('modal-force-in-check').checked = false;
+            document.getElementById('modal-forced-in-value').value = node.sinalIn.toFixed(1);
+        }
+        toggleForceInFields();
+        document.getElementById('cto-modal').style.display = 'flex';
+    }
+    
+    function abrirModalHub() {
+        document.getElementById('modal-title').innerText = `Configurar Hub (FOSK)`;
+        document.getElementById('modal-node-id').value = 'hub';
+        document.getElementById('modal-splitter').disabled = true;
+        document.getElementById('modal-dist-container').style.display = 'block';
+        document.getElementById('modal-dist').value = redeState.hubDistancia;
+        
+        if(redeState.forcedHubIn !== null) {
+            document.getElementById('modal-force-in-check').checked = true;
+            document.getElementById('modal-forced-in-value').value = redeState.forcedHubIn;
+        } else {
+            document.getElementById('modal-force-in-check').checked = false;
+            document.getElementById('modal-forced-in-value').value = redeState.hubIn.toFixed(1);
+        }
+        toggleForceInFields();
+        document.getElementById('cto-modal').style.display = 'flex';
+    }
+
+    function toggleForceInFields() {
+        const isChecked = document.getElementById('modal-force-in-check').checked;
+        document.getElementById('modal-force-in-container').style.display = isChecked ? 'block' : 'none';
+        document.getElementById('modal-dist-container').style.display = isChecked ? 'none' : 'block';
+    }
+
+    function fecharModal() { document.getElementById('cto-modal').style.display = 'none'; }
+
+    function salvarModal() {
+        const id = document.getElementById('modal-node-id').value;
+        const isForced = document.getElementById('modal-force-in-check').checked;
+        const forcedVal = parseFloat(document.getElementById('modal-forced-in-value').value) || 0;
+        
+        if (id === 'hub') {
+            if(isForced) { redeState.forcedHubIn = forcedVal; } 
+            else { redeState.forcedHubIn = null; redeState.hubDistancia = parseFloat(document.getElementById('modal-dist').value) || 0; }
+        } else {
+            if(isForced) { redeState.nodes[id].forcedIn = forcedVal; } 
+            else { redeState.nodes[id].forcedIn = null; redeState.nodes[id].distancia = parseFloat(document.getElementById('modal-dist').value) || 0; }
+            redeState.nodes[id].splitter = document.getElementById('modal-splitter').value;
+        }
+        fecharModal(); calcularSinais(); renderizarCanvas();
+    }
+
+    function toggleFiltro() {
+        isFilterActive = !isFilterActive;
+        const btn = document.getElementById('btn-filtro');
+        if(isFilterActive) { btn.classList.replace('btn-outline', 'btn'); } 
+        else { btn.classList.replace('btn', 'btn-outline'); }
+        aplicarFiltroVisual();
+    }
+
+    function aplicarFiltroVisual() {
+        const canvas = document.getElementById('network-canvas');
+        if(isFilterActive) canvas.classList.add('filter-mode');
+        else canvas.classList.remove('filter-mode');
+    }
+
+    window.onclick = function(e) { if (e.target == document.getElementById('cto-modal')) fecharModal(); }
+    window.onload = function() { gerarRede(true); };
+</script>
+</body>
+</html>
